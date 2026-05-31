@@ -1,0 +1,23 @@
+[
+  {
+    "image": "examples/sample_0001.png",
+    "instruct": "Head to the wooden gate structure ahead.",
+    "gt": "{\"translation\": [\"W\", \"W\", \"W\", \"WA\", \"W\", \"W\"], \"rotation\": [\"N\", \"N\", \"A\", \"A\", \"N\", \"N\"]}",
+    "pred": "{\"translation\": [\"W\", \"W\", \"WA\", \"W\", \"W\"], \"rotation\": [\"N\", \"A\", \"A\", \"N\", \"N\"]}",
+    "meta": {"move_type_bucket": "forward_left", "num_action_tokens_gt": 6}
+  },
+  {
+    "image": "examples/sample_0002.png",
+    "instruct": "Navigate to the line of trees.",
+    "gt": "{\"translation\": [\"W\", \"W\", \"W\", \"W\", \"W\"], \"rotation\": [\"N\", \"N\", \"N\", \"N\", \"N\"]}",
+    "pred": "{\"translation\": [\"W\", \"W\", \"W\", \"W\"], \"rotation\": [\"N\", \"N\", \"N\", \"N\"]}",
+    "meta": {"move_type_bucket": "forward", "num_action_tokens_gt": 5}
+  },
+  {
+    "image": "examples/sample_0003.png",
+    "instruct": "Approach the metal door at the front-right.",
+    "gt": "{\"translation\": [\"W\", \"WD\", \"WD\", \"D\", \"N\"], \"rotation\": [\"N\", \"D\", \"D\", \"N\", \"N\"]}",
+    "pred": "{\"translation\": [\"W\", \"W\", \"D\", \"D\", \"D\"], \"rotation\": [\"D\", \"D\", \"N\", \"N\", \"N\"]}",
+    "meta": {"move_type_bucket": "forward_right"}
+  }
+]
