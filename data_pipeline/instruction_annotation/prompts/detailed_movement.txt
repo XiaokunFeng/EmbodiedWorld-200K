@@ -1,0 +1,210 @@
+Please **strictly** follow all instructions below.
+Your output **must** be a valid JSON (or Python dictionary) object and **must not** contain any additional explanations, comments, punctuation remarks, or code-block wrappers.
+
+---
+
+## Annotation Task
+
+You are given a **trajectory sub-segment** extracted from a longer video. This sub-segment corresponds to a continuous time interval during which the primary character maintains a **consistent movement direction**. The movement direction metadata is provided alongside the video frames.
+
+Your task is to annotate the **task instruction** executed by the **primary character** within this sub-segment, along with the associated **movement target information**.
+
+We assume that the target's task intent is reflected by its overall movement direction. Since the sub-segment already exhibits a unified movement direction, you should produce exactly one task annotation for the entire sub-segment.
+
+---
+
+## Definition of Task Instructions
+
+- A **task instruction** refers to a **high-level behavioral objective** that explains *why* the character is moving in the observed direction during this sub-segment.
+  Examples include: *navigating toward a door*, *approaching an enemy*, *retreating to cover*, *exploring a corridor*, *moving toward a checkpoint*.
+
+- Task instructions are identified by reasoning about:
+  - What goal is the character attempting to achieve during this sub-segment?
+  - What destination or object is the character moving toward (or away from)?
+  - What high-level intent does the observed movement serve?
+
+- **Distinction between Action and Task**:
+  - **Action**: A short-term, atomic behavior (e.g., turning, jumping, opening a door).
+  - **Task**: A higher-level objective that may involve multiple actions, defined by a consistent goal and a clear target.
+
+---
+
+## Key Annotation Principles
+
+### Primary Character Priority
+First, identify the primary character (from either a first-person or third-person perspective) and center all annotations on this character's behavior.
+If multiple characters are present without a clear hierarchy, or if no character appears in the entire video segment (e.g., the video only contains environmental or scene information), the annotation should instead be based on the movement of the main camera viewpoint.
+
+### Visual Content Only
+Task information must be derived **exclusively from the visual content of the video frames**.
+Ignore all on-screen text, UI elements, HUD overlays, subtitles, or displayed task prompts. Even if the video explicitly shows textual instructions, you must deliberately ignore them and rely solely on observable visual evidence.
+
+### Precise and Unique Task Description
+The `task_description` must be **precise enough to uniquely identify the character's movement process** within this sub-segment. This is achieved through two mechanisms:
+
+1. **End-State Anchoring**: Constrain the description using information observable at the **final frame** of the sub-segment. The movement target should ideally be a specific, identifiable object or location that the character arrives at or approaches by the end.
+
+2. **Directional Disambiguation**: When multiple similar objects exist in the scene, use directional cues (e.g., *the door on the left*, *the cabinet to the front-right*) to uniquely identify the target.
+
+3. **Initial-Frame Visibility Requirement**: When referencing a specific object as the movement target, that object **must be visible in the first frame** of the sub-segment. If the target object only appears later in the sub-segment and is not visible at the start, it **must not** be used as the anchoring reference. In such cases, use a more general spatial description (e.g., *moving toward the end of the corridor*) or directional reference instead.
+
+4. **Fallback**: If no unique target can be identified (e.g., the character is wandering or exploring without a clear destination), describe the movement in general terms and set `move_target` to `null`.
+
+### ⚠️ Direction Consistency in task_description (CRITICAL REQUIREMENT)
+The `task_description` **must explicitly include directional words that match every component of the provided `{{MOVEMENT_DIRECTION}}`**. This is a hard requirement that cannot be omitted.
+
+- The `{{MOVEMENT_DIRECTION}}` value is composed of one or more direction components joined by `-` (e.g., `"left-forward"`, `"right-backward-up"`).
+- **Each component must appear explicitly in the `task_description`** using natural language directional expressions. The mapping is:
+  - `forward`  → must include words such as *forward*, *ahead*, *front*
+  - `backward` → must include words such as *backward*, *back*, *rear*, *retreat*
+  - `left`     → must include the word *left*
+  - `right`    → must include the word *right*
+  - `up`       → must include words such as *up*, *upward*, *upper*, *above*, *ascending*
+  - `down`     → must include words such as *down*, *downward*, *lower*, *below*, *descending*
+
+- **Examples**:
+  - `{{MOVEMENT_DIRECTION}} = "forward"` → `task_description` must explicitly contain *forward / ahead / front*
+  - `{{MOVEMENT_DIRECTION}} = "left-forward"` → `task_description` must explicitly contain both *left* and *forward / ahead / front*
+  - `{{MOVEMENT_DIRECTION}} = "right-backward-up"` → `task_description` must explicitly contain *right*, *backward / back / rear*, and *up / upward / ascending*
+
+- This directional information must be woven **naturally into the sentence** (not appended mechanically). The description should still read as a fluent, high-level task instruction.
+
+- ✅ Good example (`{{MOVEMENT_DIRECTION}} = "left-forward"`):
+  *"The character advances toward the front-left, heading for a metal door at the end of the left corridor."*
+
+- ❌ Bad example (`{{MOVEMENT_DIRECTION}} = "left-forward"`, missing direction words):
+  *"The character heads toward a metal door at the end of the corridor."*
+
+### Diversity of Expression
+Use **varied and natural language** to describe the task instruction. Avoid repetitive sentence patterns across different annotations. For example, the following expressions all describe similar movement but with different phrasing:
+
+- *The character advances through the corridor toward a wooden door at the far end.*
+- *Navigating along a dimly lit hallway, the character heads for the exit ahead.*
+- *The character proceeds down the passage, approaching the doorway visible in the distance.*
+- *Moving through the narrow corridor, the character makes their way to the door at the front.*
+
+Vary sentence structure, vocabulary, and the order of information (target first vs. action first, etc.) to ensure annotation diversity.
+
+### High-Level Semantics First
+Focus on **what the character is trying to achieve**, not on low-level actions.
+The `task_description` must be a **task-level abstraction**, not a simple enumeration of actions.
+
+### Uncertainty Handling
+If the character's objective cannot be reliably inferred from the visual content, set `"annotatable": false` and leave all other fields as `null`. Do not speculate.
+Additionally, when applying **End-State Anchoring** using a **movement target location**, you must verify whether the referenced movement target visible in the final frame also appears in the **first frame** of the sub-segment. If the target location does **not** appear in the first frame, set `"annotatable": false` and leave all other fields as `null`.
+
+---
+
+## Movement Target Information
+
+### Movement Target (`move_target`)
+- Identify the **specific spatial target** that the character moves toward (or remains at) during this sub-segment.
+  - Describe the target relative to concrete objects or spatial references visible in the scene (e.g., *in front of the red door*, *beside the large tree on the left*).
+  - The referenced object **must be visible in the first frame**. If it only appears mid-way through the sub-segment, do not use it as the anchor.
+  - If the character remains stationary, describe the position where the character stays.
+  - If no clear target exists (e.g., wandering, patrolling), output `null`.
+
+### Movement Type (`move_type`)
+- Summarize the character's **overall movement direction** during this sub-segment.
+  - Use coarse-grained descriptions: *moving forward*, *moving to the front-left*, *turning right*, *remaining stationary*, *retreating backward*, etc.
+  - If the movement involves mixed directions, summarize with the dominant direction (e.g., *moving toward the front-right*).
+
+### Direction Consistency (`direction_consist`)
+- Set to `true` if the `move_type` you annotated is **semantically consistent** with the provided `{{MOVEMENT_DIRECTION}}`; otherwise set to `false`.
+- Set to `null` if the sample is not annotatable (`"annotatable": false`).
+- This field serves as a self-check: if your annotated `move_type` conflicts with the provided `{{MOVEMENT_DIRECTION}}`, re-examine your annotation before finalizing.
+
+---
+
+## Examples
+
+### Case 1
+**Input `{{MOVEMENT_DIRECTION}}`**: `"left-forward"`
+{
+  "annotatable": true,
+  "perspective": "Third-person",
+  "task_description": "The character navigates through a nighttime campsite, moving toward the front-left to reach the entrance of a tent situated ahead and to the left.",
+  "move_target": "the tent entrance to the front-left",
+  "move_type": "moving toward the front-left",
+  "direction_consist": true
+}
+
+### Case 2
+**Input `{{MOVEMENT_DIRECTION}}`**: `"forward"`
+{
+  "annotatable": true,
+  "perspective": "First-person",
+  "task_description": "Advancing along a sunlit forest trail, the character pushes forward toward a wooden bridge visible directly ahead.",
+  "move_target": "the wooden bridge directly ahead",
+  "move_type": "moving forward",
+  "direction_consist": true
+}
+
+### Case 3
+**Input `{{MOVEMENT_DIRECTION}}`**: `"right-backward"`
+{
+  "annotatable": true,
+  "perspective": "First-person",
+  "task_description": "The character retreats backward and to the right from an open battlefield, falling back toward a stone wall located to the rear-right for cover.",
+  "move_target": "the stone wall to the rear-right",
+  "move_type": "moving toward the rear-right",
+  "direction_consist": true
+}
+
+### Case 4
+**Input `{{MOVEMENT_DIRECTION}}`**: `"right-forward-up"`
+{
+  "annotatable": true,
+  "perspective": "First-person",
+  "task_description": "The character climbs upward along a rocky slope, moving forward and to the right toward a ledge visible at the upper-right of the cliff face.",
+  "move_target": "the ledge at the upper-right of the cliff face",
+  "move_type": "moving toward the upper-right while ascending",
+  "direction_consist": true
+}
+
+### Case 5
+**Input `{{MOVEMENT_DIRECTION}}`**: `"forward"`
+{
+  "annotatable": true,
+  "perspective": "First-person",
+  "task_description": "The character roams forward through a dense forest area without a clearly identifiable destination ahead.",
+  "move_target": null,
+  "move_type": "moving forward",
+  "direction_consist": true
+}
+
+### Case 6 (not annotatable)
+**Input `{{MOVEMENT_DIRECTION}}`**: `"left-forward"`
+{
+  "annotatable": false,
+  "perspective": null,
+  "task_description": null,
+  "move_target": null,
+  "move_type": null,
+  "direction_consist": null
+}
+
+---
+
+## Input
+
+`{{VIDEO_FRAMES}}` — A sequence of video frames corresponding to one trajectory sub-segment. The sub-segment has a consistent primary movement direction.
+
+`{{MOVEMENT_DIRECTION}}` — The dominant movement direction of this sub-segment (e.g., "forward", "right-forward", "left"). This is provided as auxiliary reference; the annotation must still be grounded in the visual content. **The `task_description` must explicitly include directional words corresponding to every component of this value.**
+
+---
+
+## Output Format
+
+Return a JSON dictionary with the following structure:
+
+```
+{
+  "annotatable": <bool>,
+  "perspective": "<First-person / Third-person / Other, or null if not annotatable>",
+  "task_description": "<high-level description of the character's task instruction, explicitly containing directional words matching all components of {{MOVEMENT_DIRECTION}}, or null>",
+  "move_target": "<the character's movement target, or null>",
+  "move_type": "<the character's overall movement direction, or null>",
+  "direction_consist": "<true if move_type is consistent with {{MOVEMENT_DIRECTION}}, false if not, null if not annotatable>"
+}
+```

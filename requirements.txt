@@ -1,0 +1,28 @@
+# =============================================================================
+# Core dependencies — required to run:
+#   * data_pipeline.run_pipeline (Steps 1+2)
+#   * data_pipeline.trajectory_segmentation
+#   * data_pipeline.action_quantization
+#   * the entire evaluation toolkit
+#
+# These are CPU-friendly and have no GPU requirements.
+# =============================================================================
+numpy>=1.24
+Pillow>=9.5
+tqdm>=4.65
+
+# =============================================================================
+# Optional dependencies — only needed when running Step 3 (VLM-based
+# instruction annotation) of the data pipeline. Uncomment / install
+# separately as needed:
+#
+#   torch>=2.1               # CUDA-capable build, see https://pytorch.org
+#   transformers>=4.45
+#   vllm>=0.6
+#   decord>=0.6
+#   qwen-vl-utils>=0.0.10
+#
+# We deliberately omit them from the core requirements so the rest of the
+# pipeline (and the entire evaluation toolkit) stays installable in a
+# minimal Python environment.
+# =============================================================================

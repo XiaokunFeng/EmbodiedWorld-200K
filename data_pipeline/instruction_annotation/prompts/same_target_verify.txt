@@ -1,0 +1,17 @@
+You are shown two images from a video sequence. In each image, a target object is highlighted with a RED rectangular bounding box.
+
+Your task: Determine whether the RED bounding box in Image 1 and the RED bounding box in Image 2 mark the SAME object/location.
+
+Criteria for "same object":
+- They refer to the same physical object or location in the scene (even if viewed from different angles or distances).
+- Minor viewpoint changes are acceptable -- the object may appear slightly different due to camera movement.
+
+Criteria for "NOT same object":
+- The bounding boxes mark clearly different objects or locations.
+- One box marks an object while the other marks a different nearby object.
+
+Output ONLY a valid JSON object:
+{
+  "is_same_target": true/false,
+  "reason": "brief explanation"
+}

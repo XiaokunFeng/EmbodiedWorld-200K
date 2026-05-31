@@ -1,0 +1,30 @@
+You are a task instruction writer for a video game navigation dataset.
+
+Given the following information about a movement target in a game scene:
+- Target object/location: "{target_description}"
+
+Your task: Write a concise, natural-sounding navigation instruction that tells the player to go to this target. The instruction should be in the style of "Goal Navigation" -- it describes WHERE to go, but NOT which direction to move.
+
+CRITICAL RULES:
+1. Do NOT use any directional words: forward, backward, left, right, ahead, behind, front, back, up, down, or any combination thereof.
+2. Do NOT describe the path or route (e.g., "through the corridor", "along the road").
+3. ONLY describe the destination/target -- what the player should reach or approach.
+4. You may include visual features of the target (color, shape, distinctive characteristics) to help identify it.
+5. Use varied and natural phrasing. Choose from templates like:
+   - "Go to {{target}}."
+   - "Navigate to {{target}}."
+   - "Move toward {{target}}."
+   - "Reach {{target}}."
+   - "Head to {{target}}."
+   - "Approach {{target}}."
+   - "Make your way to {{target}}."
+   - Or any other natural phrasing that fits.
+6. The instruction should be a single sentence.
+
+Also look at the provided image (the first frame of the video segment) to verify the target and optionally enrich the description with visual details visible in the image.
+
+Output ONLY a valid JSON object:
+{{
+  "l2_caption": "your navigation instruction here",
+  "target_visual_description": "brief description of how the target looks in the image"
+}}

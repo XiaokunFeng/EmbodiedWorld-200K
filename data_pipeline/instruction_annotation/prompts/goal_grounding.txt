@@ -1,0 +1,12 @@
+Locate the following object in this image: "{target_description}"
+
+Report the bounding box coordinates in JSON format like this:
+[{{"bbox_2d": [x1, y1, x2, y2], "label": "{target_description}"}}]
+
+Rules:
+- Coordinates should be in the range 0-1000 (relative to image dimensions).
+- If the object is NOT visible in the image, output an empty list: [].
+- If multiple instances exist, report ALL of them as separate entries in the list.
+- Be precise -- the bounding box should tightly enclose the target object.
+
+Output ONLY a valid JSON list, no other text.

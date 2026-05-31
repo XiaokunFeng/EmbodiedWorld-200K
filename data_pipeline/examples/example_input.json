@@ -1,0 +1,12 @@
+{
+  "video_path": "/path/to/your/video.mp4",
+  "camera_pose_json_path": "/path/to/your/pose.json",
+  "data_source": "example_game",
+  "metadata": {
+    "comment": "Minimal example of a raw EmbodiedWorld-200K input manifest.",
+    "expected_pose_json_schema": {
+      "pose": "[ list of 4x4 c2w matrices, one per frame, recovered by VIPE or similar ]",
+      "metadata": "{ optional auxiliary metadata, ignored by the pipeline }"
+    }
+  }
+}

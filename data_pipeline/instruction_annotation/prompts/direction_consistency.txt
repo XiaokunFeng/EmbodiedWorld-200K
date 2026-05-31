@@ -1,0 +1,96 @@
+Please **strictly** follow all instructions below.
+Your output **must** be a valid JSON object and **must not** contain any additional explanations, comments, or code-block wrappers.
+
+---
+
+## Task
+
+You are given two pieces of directional information extracted from a game video trajectory annotation:
+
+1. **`direction_description`** — A concise, hyphen-joined label describing the camera/character's overall movement direction (e.g., `"forward"`, `"right-forward"`, `"left-backward-up"`). Each component is one of: `forward`, `backward`, `left`, `right`, `up`, `down`, `stationary`.
+
+2. **`move_type`** — A free-text annotation describing the character's overall movement direction in natural language (e.g., `"moving forward"`, `"moving toward the front-right"`, `"remaining stationary"`).
+
+Your task is to determine whether these two descriptions refer to **the same set of directional components** on two axes:
+- **Forward / Backward axis** (front-back)
+- **Left / Right axis**
+
+**Note**: Ignore any up/down (vertical) components in both inputs. Only the horizontal movement directions matter.
+
+---
+
+## Decomposition Rules
+
+### For `direction_description`
+Split by `-` to extract directional components. Ignore any `up` / `down` components. Examples:
+- `"forward"` → forward-backward: **forward**, left-right: **none**
+- `"right-forward"` → forward-backward: **forward**, left-right: **right**
+- `"left-backward-up"` → forward-backward: **backward**, left-right: **left** (ignore `up`)
+- `"right-forward-down"` → forward-backward: **forward**, left-right: **right** (ignore `down`)
+- `"stationary"` → forward-backward: **none**, left-right: **none**
+
+### For `move_type`
+Parse the natural language text to identify directional components. Ignore any up/down/vertical keywords. Use the following keyword mapping:
+- **forward**: words like *forward*, *ahead*, *front*
+- **backward**: words like *backward*, *back*, *rear*, *retreat*, *retreating*
+- **left**: the word *left*
+- **right**: the word *right*
+- **stationary**: words like *stationary*, *remaining still*, *staying*
+
+Examples:
+- `"moving toward the front-right"` → forward-backward: **forward**, left-right: **right**
+- `"moving forward"` → forward-backward: **forward**, left-right: **none**
+- `"moving toward the lower-right"` → forward-backward: **none**, left-right: **right** (ignore "lower")
+- `"remaining stationary"` → forward-backward: **none**, left-right: **none**
+- `"moving toward the rear-left"` → forward-backward: **backward**, left-right: **left**
+- `"moving toward the front-right while ascending"` → forward-backward: **forward**, left-right: **right** (ignore "ascending")
+
+---
+
+## Consistency Check
+
+Compare the decomposed components of `direction_description` and `move_type` on each axis:
+- **forward-backward axis**: both must agree (both forward, both backward, or both none)
+- **left-right axis**: both must agree (both left, both right, or both none)
+
+If **both axes match**, the result is `true`. If **any axis differs**, the result is `false`.
+
+### Examples
+
+| direction_description | move_type | FB axis match | LR axis match | Result |
+|---|---|---|---|---|
+| `right-forward` | `moving toward the front-right` | forward=forward | right=right | **true** |
+| `right` | `moving toward the front-right` | **none != forward** | right=right | **false** |
+| `forward` | `moving forward` | forward=forward | none=none | **true** |
+| `left-backward` | `moving toward the rear-left` | backward=backward | left=left | **true** |
+| `right-forward` | `moving forward` | forward=forward | **right != none** | **false** |
+| `right-forward-up` | `moving toward the upper-right` | **forward != none** | right=right | **false** |
+| `left-forward-down` | `moving toward the front-left while descending` | forward=forward | left=left | **true** |
+| `stationary` | `remaining stationary` | none=none | none=none | **true** |
+
+---
+
+## Input
+
+`direction_description`: {{DIRECTION_DESCRIPTION}}
+`move_type`: {{MOVE_TYPE}}
+
+---
+
+## Output Format
+
+Return a JSON object with the following structure:
+
+```
+{
+  "direction_desc_decompose": {
+    "forward_backward": "<forward / backward / none>",
+    "left_right": "<left / right / none>"
+  },
+  "move_type_decompose": {
+    "forward_backward": "<forward / backward / none>",
+    "left_right": "<left / right / none>"
+  },
+  "is_consistent": <true / false>
+}
+```
